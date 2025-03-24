@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-const ProfileScreen = () => {
+const ProfileScreen = ({navigation}: any) => {
   // Sample user data
   const user = {
     name: 'Alex Johnson',
@@ -27,15 +27,20 @@ const ProfileScreen = () => {
 
   // Sample activity data
   const activityData = [
-    { id: 1, type: 'Project', title: 'Mobile App Redesign', date: '2 days ago' },
-    { id: 2, type: 'Design', title: 'Dashboard UI Kit', date: '1 week ago' },
-    { id: 3, type: 'Collaboration', title: 'Team Workspace', date: '2 weeks ago' },
+    {id: 1, type: 'Project', title: 'Mobile App Redesign', date: '2 days ago'},
+    {id: 2, type: 'Design', title: 'Dashboard UI Kit', date: '1 week ago'},
+    {
+      id: 3,
+      type: 'Collaboration',
+      title: 'Team Workspace',
+      date: '2 weeks ago',
+    },
   ];
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity>
@@ -45,25 +50,28 @@ const ProfileScreen = () => {
           <Icon name="more-horizontal" size={24} color="#000" />
         </TouchableOpacity>
       </View>
-      
+
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile Info */}
         <View style={styles.profileSection}>
-          <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
-          
+          <Image
+            source={{uri: user.profileImage}}
+            style={styles.profileImage}
+          />
+
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}</Text>
             <Text style={styles.role}>{user.role}</Text>
           </View>
-          
+
           <Text style={styles.bio}>{user.bio}</Text>
-          
+
           <View style={styles.locationContainer}>
             <Icon name="map-pin" size={16} color="#666" />
             <Text style={styles.locationText}>{user.location}</Text>
           </View>
         </View>
-        
+
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
@@ -76,28 +84,36 @@ const ProfileScreen = () => {
             <Text style={styles.statLabel}>Following</Text>
           </View>
         </View>
-        
+
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.primaryButton}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => navigation.navigate('Test')}>
             <Text style={styles.primaryButtonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryButton}>
             <Icon name="share-2" size={20} color="#333" />
           </TouchableOpacity>
         </View>
-        
+
         {/* Recent Activity */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
-          
-          {activityData.map((item) => (
+
+          {activityData.map(item => (
             <View key={item.id} style={styles.activityItem}>
               <View style={styles.activityIcon}>
-                <Icon 
-                  name={item.type === 'Project' ? 'briefcase' : item.type === 'Design' ? 'pen-tool' : 'users'} 
-                  size={18} 
-                  color="#fff" 
+                <Icon
+                  name={
+                    item.type === 'Project'
+                      ? 'briefcase'
+                      : item.type === 'Design'
+                      ? 'pen-tool'
+                      : 'users'
+                  }
+                  size={18}
+                  color="#fff"
                 />
               </View>
               <View style={styles.activityContent}>
@@ -109,7 +125,7 @@ const ProfileScreen = () => {
             </View>
           ))}
         </View>
-        
+
         {/* Portfolio Section */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
@@ -118,20 +134,27 @@ const ProfileScreen = () => {
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.portfolioScroll}>
-            {[1, 2, 3, 4].map((item) => (
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.portfolioScroll}>
+            {[1, 2, 3, 4].map(item => (
               <View key={item} style={styles.portfolioItem}>
-                <Image 
-                  source={{ uri: `https://via.placeholder.com/300/${Math.floor(Math.random()*16777215).toString(16)}` }} 
-                  style={styles.portfolioImage} 
+                <Image
+                  source={{
+                    uri: `https://via.placeholder.com/300/${Math.floor(
+                      Math.random() * 16777215,
+                    ).toString(16)}`,
+                  }}
+                  style={styles.portfolioImage}
                 />
                 <Text style={styles.portfolioTitle}>Project {item}</Text>
               </View>
             ))}
           </ScrollView>
         </View>
-        
+
         {/* Contact Section */}
         <View style={styles.contactContainer}>
           <TouchableOpacity style={styles.contactItem}>
@@ -144,9 +167,9 @@ const ProfileScreen = () => {
             <Text style={styles.contactText}>Call</Text>
           </TouchableOpacity>
         </View>
-        
+
         {/* Bottom Spacing */}
-        <View style={{ height: 40 }} />
+        <View style={{height: 40}} />
       </ScrollView>
     </View>
   );
