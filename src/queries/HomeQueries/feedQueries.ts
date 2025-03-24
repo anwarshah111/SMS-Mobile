@@ -1,7 +1,7 @@
 import {useInfiniteQuery} from '@tanstack/react-query';
 import axios from 'axios';
 
-const fetchFeedVideos = async ({pageParam = 1}) => {
+export const fetchFeedVideos = async ({pageParam = 1}) => {
   try {
     const res = await axios.get(
       `https://api.pexels.com/videos/popular?page=${pageParam}`,

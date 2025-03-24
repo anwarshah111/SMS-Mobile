@@ -1,6 +1,7 @@
 import {View, Text} from 'react-native';
 import React from 'react';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import YouTubeLogo from '../../assets/svgs/youtube-logo.svg';
 
 const MainHeader = ({title}: {title: string}) => {
   const insets = useSafeAreaInsets();
@@ -14,9 +15,10 @@ const MainHeader = ({title}: {title: string}) => {
         borderBottomColor: '#c4c4c4',
         backgroundColor: 'white',
       }}>
-      <Text style={{color: 'red', fontSize: 18, fontWeight: 'bold'}}>
+      <YouTubeLogo width={112} height={25} />
+      {/* <Text style={{color: 'red', fontSize: 18, fontWeight: 'bold'}}>
         {title}
-      </Text>
+      </Text> */}
     </View>
   );
 };
