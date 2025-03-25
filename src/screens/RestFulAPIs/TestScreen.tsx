@@ -11,7 +11,12 @@ const TestScreen = ({navigation}: any) => {
   const {data, isPending} = useTestQueries();
   return (
     <View style={{flex: 1}}>
-      <SecondryHeader title={'Devices'} showBack={true} />
+      <SecondryHeader
+        title={'Devices'}
+        showBack={true}
+        rightButtonIcon={'add'}
+        rightButtonAction={() => navigation.navigate('AddTest')}
+      />
       <FlatList
         data={data}
         style={{flex: 1}}

@@ -5,6 +5,8 @@ import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import BottomTabNavigation from './BottomTabNavigation';
 import TestScreen from '../screens/RestFulAPIs/TestScreen';
 import TestDetails from '../screens/RestFulAPIs/TestDetails';
+import EditTests from '../screens/RestFulAPIs/EditTests';
+import AddTests from '../screens/RestFulAPIs/AddTests';
 
 const Stack = createStackNavigator();
 const StackNavigation = () => {
@@ -15,6 +17,8 @@ const StackNavigation = () => {
       <Stack.Screen name="Dashboard" component={BottomTabNavigation} />
       <Stack.Screen name="Test" component={TestScreen} />
       <Stack.Screen name="TestDetails" component={TestDetails} />
+      <Stack.Screen name="EditTest" component={EditTests} />
+      <Stack.Screen name="AddTest" component={AddTests} />
       {/* <Stack.Screen name="Profile" component={BottomTabNavigation} /> */}
     </Stack.Navigator>
   );

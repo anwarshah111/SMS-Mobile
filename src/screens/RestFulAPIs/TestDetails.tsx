@@ -5,7 +5,7 @@ import {useRoute} from '@react-navigation/native';
 import {useTestDetailsQuery} from '../../queries/TestQueries/testQueries';
 import Loading from '../../components/Loading/Loading';
 
-const TestDetails = () => {
+const TestDetails = ({navigation}: any) => {
   const routes = useRoute();
   const {id} = routes.params;
 
@@ -15,7 +15,7 @@ const TestDetails = () => {
     <View style={{flex: 1}}>
       <SecondryHeader
         title={'Details'}
-        rightButtonAction={() => {}}
+        rightButtonAction={() => navigation.navigate('EditTest', {data: data})}
         rightButtonIcon={'edit'}
       />
       <ScrollView contentContainerStyle={styles.scrollContent}>
