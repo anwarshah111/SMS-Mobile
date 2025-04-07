@@ -5,13 +5,21 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
+interface Props {
+  title: string;
+  showBack?: boolean;
+  rightButtonIcon?: string;
+  rightButtonAction?: () => void;
+  rightButtonColor?: string;
+}
+
 const SecondryHeader = ({
-  title, 
-  showBack = true, 
-  rightButtonIcon, 
+  title,
+  showBack = true,
+  rightButtonIcon,
   rightButtonAction,
-  rightButtonColor = '#333'
-}) => {
+  rightButtonColor = '#333',
+}: Props) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   return (
@@ -28,7 +36,7 @@ const SecondryHeader = ({
         shadowRadius: 5,
         elevation: 5,
       }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
         {showBack && (
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="#333" />
@@ -44,7 +52,7 @@ const SecondryHeader = ({
           {title}
         </Text>
       </View>
-      
+
       {rightButtonIcon && (
         <TouchableOpacity onPress={rightButtonAction}>
           <MIcon name={rightButtonIcon} size={24} color={rightButtonColor} />

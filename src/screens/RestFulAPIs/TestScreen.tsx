@@ -17,6 +17,17 @@ const TestScreen = ({navigation}: any) => {
         rightButtonIcon={'add'}
         rightButtonAction={() => navigation.navigate('AddTest')}
       />
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingVertical: 5,
+          backgroundColor: 'pink',
+        }}>
+        <Text style={{textAlign: 'center', color: 'black'}}>
+          Caching the data here using react query and using the mutation and
+          invalidating the queries
+        </Text>
+      </View>
       <FlatList
         data={data}
         style={{flex: 1}}

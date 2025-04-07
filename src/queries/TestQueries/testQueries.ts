@@ -67,4 +67,29 @@ export const useAddTestDetails = () =>
     mutationFn: addTestDetails,
   });
 
+const getPhotos = async ({pageParam}) => {
+  try {
+    const res = await axios.get(
+      `https://api.pexels.com/v1/curated?page=${pageParam}`,
+      {headers: {Authorization: process.env.VIDEO_API_KEY}},
+    );
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching videos:', error?.response);
+  }
+};
+
+export const useSamplePhotos = () =>
+  useInfiniteQuery({
+    queryKey: ['photos'],
+    queryFn: getPhotos,
+    initialPageParam: 1,
+    getNextPageParam: lastPage => {
+      return lastPage?.next_page ? lastPage?.page + 1 : undefined;
+    },
+    select: data => ({
+      photos: data.pages?.flatMap(page => page.photos),
+    }),
+  });
+
 export default useTestQueries;

@@ -40,17 +40,6 @@ const ProfileScreen = ({navigation}: any) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Icon name="arrow-left" size={24} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Icon name="more-horizontal" size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile Info */}
         <View style={styles.profileSection}>
@@ -74,15 +63,19 @@ const ProfileScreen = ({navigation}: any) => {
 
         {/* Stats */}
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => navigation.navigate('DashBoard')}>
             <Text style={styles.statValue}>{user.followers}</Text>
             <Text style={styles.statLabel}>Followers</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => navigation.navigate('SchoolRegistration')}>
             <Text style={styles.statValue}>{user.following}</Text>
             <Text style={styles.statLabel}>Following</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Action Buttons */}
@@ -90,9 +83,11 @@ const ProfileScreen = ({navigation}: any) => {
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={() => navigation.navigate('Test')}>
-            <Text style={styles.primaryButtonText}>Edit Profile</Text>
+            <Text style={styles.primaryButtonText}>Query Testing</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate('TestPhotos')}>
             <Icon name="share-2" size={20} color="#333" />
           </TouchableOpacity>
         </View>
@@ -102,7 +97,10 @@ const ProfileScreen = ({navigation}: any) => {
           <Text style={styles.sectionTitle}>Recent Activity</Text>
 
           {activityData.map(item => (
-            <View key={item.id} style={styles.activityItem}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.activityItem}
+              onPress={() => navigation.navigate('SchoolRequestScreen')}>
               <View style={styles.activityIcon}>
                 <Icon
                   name={
@@ -122,7 +120,7 @@ const ProfileScreen = ({navigation}: any) => {
                 <Text style={styles.activityDate}>{item.date}</Text>
               </View>
               <Icon name="chevron-right" size={20} color="#999" />
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -130,7 +128,8 @@ const ProfileScreen = ({navigation}: any) => {
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Portfolio</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SchoolsDashboard')}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
