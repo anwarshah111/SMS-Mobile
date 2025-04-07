@@ -14,6 +14,9 @@ import SchoolRequestScreen from '../screens/Admin/SchoolRequestScreen';
 import SchoolsDashboard from '../screens/Schools/SchoolsDashboard';
 import RequestedStudents from '../screens/Schools/RequestedStudents';
 import ManageStudents from '../screens/Schools/ManageStudents';
+import StudentLogin from '../screens/Students/StudentsLogin';
+import SchoolLogin from '../screens/Schools/SchoolLogin';
+import StudentsRegistration from '../screens/Students/StudentsRegistration';
 
 const Stack = createStackNavigator();
 const StackNavigation = () => {
@@ -36,6 +39,12 @@ const StackNavigation = () => {
       <Stack.Screen name="SchoolsDashboard" component={SchoolsDashboard} />
       <Stack.Screen name="RequestedStudents" component={RequestedStudents} />
       <Stack.Screen name="ManageStudents" component={ManageStudents} />
+      <Stack.Screen name="StudentLogin" component={StudentLogin} />
+      <Stack.Screen name="SchoolLogin" component={SchoolLogin} />
+      <Stack.Screen
+        name="StudentsRegistration"
+        component={StudentsRegistration}
+      />
       {/* <Stack.Screen name="Profile" component={BottomTabNavigation} /> */}
     </Stack.Navigator>
   );

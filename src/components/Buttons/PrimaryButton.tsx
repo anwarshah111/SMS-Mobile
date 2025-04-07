@@ -23,7 +23,7 @@ type GradientButtonProps = {
 const PrimaryButton: React.FC<GradientButtonProps> = ({
   title,
   onPress,
-  colors = ['#161B40', '#303F9F'],
+  colors = ['#3949AB', '#1E88E5'],
   style = {},
   textStyle = {},
   disabled = false,

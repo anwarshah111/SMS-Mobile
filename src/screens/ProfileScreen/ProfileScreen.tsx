@@ -156,7 +156,9 @@ const ProfileScreen = ({navigation}: any) => {
 
         {/* Contact Section */}
         <View style={styles.contactContainer}>
-          <TouchableOpacity style={styles.contactItem}>
+          <TouchableOpacity
+            style={styles.contactItem}
+            onPress={() => navigation.navigate('StudentLogin')}>
             <Icon name="mail" size={22} color="#333" />
             <Text style={styles.contactText}>Message</Text>
           </TouchableOpacity>

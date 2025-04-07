@@ -28,6 +28,7 @@ const SchoolRegistration = () => {
     email: '',
     website: '',
     principal: '',
+    password: '',
     establishedYear: '',
     board: '',
     studentCapacity: '',
@@ -43,6 +44,7 @@ const SchoolRegistration = () => {
     email: Yup.string()
       .email('Invalid email address')
       .required('Email is required'),
+    password: Yup.string().required('password is required'),
     website: Yup.string()
       .url('Invalid URL format')
       .required('Website is required'),
@@ -128,7 +130,7 @@ const SchoolRegistration = () => {
                     label="School Name"
                     name="name"
                     formikProps={formikProps}
-                    placeholder="e.g. Springfield High School"
+                    placeholder="School Name"
                     autoCapitalize="words"
                     icon="🏫"
                   />
@@ -137,7 +139,7 @@ const SchoolRegistration = () => {
                     label="Address"
                     name="address"
                     formikProps={formikProps}
-                    placeholder="e.g. 742 Evergreen Terrace, Springfield"
+                    placeholder="Address"
                     multiline
                     numberOfLines={2}
                     icon="📍"
@@ -147,7 +149,7 @@ const SchoolRegistration = () => {
                     label="Contact Number"
                     name="contact"
                     formikProps={formikProps}
-                    placeholder="e.g. 9876543210"
+                    placeholder="Contact Number"
                     keyboardType="phone-pad"
                     maxLength={10}
                     icon="📞"
@@ -157,8 +159,18 @@ const SchoolRegistration = () => {
                     label="Email Address"
                     name="email"
                     formikProps={formikProps}
-                    placeholder="e.g. contact@springfieldhigh.edu"
+                    placeholder="Email"
                     keyboardType="email-address"
+                    autoCapitalize="none"
+                    icon="✉️"
+                  />
+
+                  <FormField
+                    label="Password"
+                    name="password"
+                    formikProps={formikProps}
+                    placeholder="Password"
+                    keyboardType="default"
                     autoCapitalize="none"
                     icon="✉️"
                   />
@@ -167,7 +179,7 @@ const SchoolRegistration = () => {
                     label="Website"
                     name="website"
                     formikProps={formikProps}
-                    placeholder="e.g. https://springfieldhigh.edu"
+                    placeholder="Website"
                     autoCapitalize="none"
                     keyboardType="url"
                     icon="🌐"
@@ -177,7 +189,7 @@ const SchoolRegistration = () => {
                     label="Principal Name"
                     name="principal"
                     formikProps={formikProps}
-                    placeholder="e.g. John Doe"
+                    placeholder="Principal Name"
                     autoCapitalize="words"
                     icon="👤"
                   />
@@ -186,7 +198,7 @@ const SchoolRegistration = () => {
                     label="Established Year"
                     name="establishedYear"
                     formikProps={formikProps}
-                    placeholder="e.g. 1995"
+                    placeholder="Established Year"
                     keyboardType="numeric"
                     maxLength={4}
                     icon="📅"
@@ -196,7 +208,7 @@ const SchoolRegistration = () => {
                     label="Board"
                     name="board"
                     formikProps={formikProps}
-                    placeholder="e.g. CBSE"
+                    placeholder="Board"
                     autoCapitalize="characters"
                     icon="🎓"
                   />
@@ -205,7 +217,7 @@ const SchoolRegistration = () => {
                     label="Student Capacity"
                     name="studentCapacity"
                     formikProps={formikProps}
-                    placeholder="e.g. 1200"
+                    placeholder="Student Capacity"
                     keyboardType="numeric"
                     icon="👥"
                   />
