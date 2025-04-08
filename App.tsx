@@ -5,6 +5,8 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import MainNavigator from './src/navigations/MainNavigator';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {fetchFeedVideos} from './src/queries/HomeQueries/feedQueries';
+import Toast from 'react-native-toast-message';
+import {toastConfig} from './src/components/Toasters/CustomToasts';
 
 const queryClient = new QueryClient();
 const App = () => {
@@ -20,6 +22,7 @@ const App = () => {
       <SafeAreaProvider>
         <MainNavigator />
       </SafeAreaProvider>
+      <Toast config={toastConfig} />
     </QueryClientProvider>
   );
 };

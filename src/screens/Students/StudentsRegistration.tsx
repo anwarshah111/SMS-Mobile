@@ -19,13 +19,31 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import PrimaryButton from '../../components/Buttons/PrimaryButton';
 import ImagePickerModal from '../../components/ImagePickers/ImagePicker';
 import CustomDatePickerModal from '../../components/DateTimePicker/DateTimePicker';
-import {formatDateToReadable} from '../../utility/utility';
+import {calculateAge, formatDateToReadable} from '../../utility/utility';
+import {useRegisterStudentsMutation} from '../../queries/studentQueries/studentQueries';
+import {showToast} from '../../components/Toasters/CustomToasts';
 
-const StudentsRegistration = () => {
+const StudentsRegistration = ({navigation}: any) => {
   const insets = useSafeAreaInsets();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const {mutate} = useRegisterStudentsMutation({
+    onSuccess: () => {
+      navigation.goBack();
+      showToast('Request sent to school admin!');
+    },
+    onError: error => {
+      if (error.response.data.code === 'DUP_MOB') {
+        showToast('Student with this mobile number already exists!');
+      } else if (error.response.data.code === 'INVALID_SCHOOL_ID') {
+        showToast('Invalid School ID!');
+      } else {
+        console.log('error', error.response.data);
+        showToast('Failed to send request to school admin!');
+      }
+    },
+  });
 
   const initialValues = {
     name: '',
@@ -47,16 +65,19 @@ const StudentsRegistration = () => {
     dob: Yup.date().required('Date of birth is required'),
   });
 
-  const handleSubmit = values => {
-    console.log('Form Values:', {
-      ...values,
-      photo,
-    });
-    Alert.alert(
-      'Registration Successful',
-      'Student registration submitted successfully!',
-      [{text: 'OK'}],
-    );
+  const handleSubmit = (values: any) => {
+    const data = {
+      photo: photo?.path || '',
+      studentName: values.name,
+      age: calculateAge(values.dob) || 1,
+      mobileNumber: values.contact,
+      grade: values.grade,
+      schoolId: values.schoolId,
+    };
+    // console.log('====================================');
+    // console.log(data);
+    // console.log('====================================');
+    mutate({data});
   };
 
   const FormField = ({label, name, formikProps, icon, ...rest}) => {
