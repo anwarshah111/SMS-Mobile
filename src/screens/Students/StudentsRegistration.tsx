@@ -39,8 +39,8 @@ const StudentsRegistration = ({navigation}: any) => {
       } else if (error.response.data.code === 'INVALID_SCHOOL_ID') {
         showToast('Invalid School ID!');
       } else {
-        console.log('error', error.response.data);
-        showToast('Failed to send request to school admin!');
+        console.log('error', error.response.data?.message);
+        showToast(error.response.data?.message);
       }
     },
   });
@@ -71,12 +71,10 @@ const StudentsRegistration = ({navigation}: any) => {
       studentName: values.name,
       age: calculateAge(values.dob) || 1,
       mobileNumber: values.contact,
+      countryCode: '+91',
       grade: values.grade,
       schoolId: values.schoolId,
     };
-    // console.log('====================================');
-    // console.log(data);
-    // console.log('====================================');
     mutate({data});
   };
 

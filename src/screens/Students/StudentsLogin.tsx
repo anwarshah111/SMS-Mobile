@@ -14,17 +14,39 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import {
+  useFetchLoginStudentDetails,
+  useStudentRequestLoginOTPMutation,
+  useStudentRequestOTPVeifyMutation,
+} from '../../queries/studentQueries/studentQueries';
+import {showToast} from '../../components/Toasters/CustomToasts';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StudentLogin = ({navigation}: any) => {
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [studentData, setStudentData] = useState(null);
+  const [student, setStudent] = useState(null);
+  const [isEnabled, setIsEnabled] = useState(false);
   const [showOtpScreen, setShowOtpScreen] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const phoneInputRef = useRef(null);
-  const otpInputRefs = useRef([...Array(4)].map(() => React.createRef()));
+  const {data} = useFetchLoginStudentDetails(
+    student?._id,
+    student,
+    isEnabled, // Controls whether the query executes
+  );
+
+  useEffect(() => {
+    if (data) {
+      setStudentData(data);
+      AsyncStorage.setItem('@STUDENT_ID', student?._id);
+      navigation.navigate('DashBoard');
+    }
+  }, [data, navigation]);
+
+  const otpInputRefs = useRef([...Array(6)].map(() => React.createRef()));
 
   const handleRegistration = () => {
-    // Handle registration flow
-    // console.log('Navigate to registration');
     navigation.navigate('StudentsRegistration');
   };
 
@@ -32,18 +54,42 @@ const StudentLogin = ({navigation}: any) => {
     navigation.navigate('SchoolLogin');
   };
 
-  const handleSendOtp = () => {
-    if (phoneNumber.length >= 10) {
-      // In a real app, you would call an API to send OTP
-      console.log('Sending OTP to', phoneNumber);
+  const {mutate} = useStudentRequestLoginOTPMutation({
+    onSuccess: () => {
       setShowOtpScreen(true);
-
-      // Focus on first OTP input after a short delay (to allow screen transition)
       setTimeout(() => {
         if (otpInputRefs.current[0]?.current) {
           otpInputRefs.current[0].current.focus();
         }
       }, 300);
+    },
+    onError: error => {
+      if (error.response.data.code === 'DUP_MOB') {
+        showToast('Student with this mobile number already exists!');
+      } else if (error.response.data.code === 'INVALID_SCHOOL_ID') {
+        showToast('Invalid School ID!');
+      } else {
+        console.log('error', error.response.data?.message);
+        showToast(error.response.data?.message);
+      }
+    },
+  });
+
+  const verifyOTPMutate = useStudentRequestOTPVeifyMutation({
+    onSuccess: data => {
+      setStudent(data.student);
+      setIsEnabled(true);
+    },
+    onError: error => {
+      showToast(error.response.data?.message);
+    },
+  });
+
+  const handleSendOtp = () => {
+    if (phoneNumber.length >= 10) {
+      // In a real app, you would call an API to send OTP
+      console.log('Sending OTP to', phoneNumber);
+      mutate({data: {mobileNumber: phoneNumber, countryCode: '+91'}});
     } else {
       // Show error message for invalid phone number
       alert('Please enter a valid phone number');
@@ -52,7 +98,7 @@ const StudentLogin = ({navigation}: any) => {
 
   const handleBackToPhone = () => {
     setShowOtpScreen(false);
-    setOtp(['', '', '', '']);
+    setOtp(['', '', '', '', '', '']);
   };
 
   const handleOtpChange = (text, index) => {
@@ -62,7 +108,7 @@ const StudentLogin = ({navigation}: any) => {
     setOtp(newOtp);
 
     // Auto-advance to next input if this one is filled and not the last one
-    if (text.length === 1 && index < 3) {
+    if (text.length === 1 && index < 5) {
       otpInputRefs.current[index + 1].current.focus();
     }
   };
@@ -80,20 +126,17 @@ const StudentLogin = ({navigation}: any) => {
 
   const handleVerifyOtp = () => {
     const otpString = otp.join('');
-    if (otpString.length === 4) {
-      // In a real app, you would verify the OTP with your backend
-      console.log('Verifying OTP:', otpString);
-      // Simulating successful verification
-      alert('OTP verified successfully!');
-      // Navigate to next screen or show success message
+    if (otpString.length === 6) {
+      verifyOTPMutate.mutate({
+        data: {mobileNumber: phoneNumber, otp: otpString, countryCode: '+91'},
+      });
     } else {
-      alert('Please enter a valid 4-digit OTP');
     }
   };
 
   const handleResendOtp = () => {
     // Reset OTP inputs
-    setOtp(['', '', '', '']);
+    setOtp(['', '', '', '', '', '']);
 
     // In a real app, call API to resend OTP
     console.log('Resending OTP to', phoneNumber);
@@ -131,6 +174,7 @@ const StudentLogin = ({navigation}: any) => {
             placeholder="Phone Number"
             keyboardType="phone-pad"
             value={phoneNumber}
+            placeholderTextColor={'#AAA'}
             onChangeText={text => setPhoneNumber(text)}
             autoFocus={false}
             maxLength={10}
@@ -188,7 +232,7 @@ const StudentLogin = ({navigation}: any) => {
 
       <Text style={styles.title}>Verify Your Number</Text>
       <Text style={styles.subtitle}>
-        Enter the 4-digit code sent to {'\n'}+91 {phoneNumber}
+        Enter the 6-digit code sent to {'\n'}+91 {phoneNumber}
       </Text>
 
       <View style={styles.otpContainer}>
@@ -360,13 +404,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   otpInput: {
-    width: 65,
-    height: 65,
+    width: 48,
+    height: 48,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 14,
     textAlign: 'center',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     backgroundColor: '#F9F9F9',
     shadowColor: '#000',

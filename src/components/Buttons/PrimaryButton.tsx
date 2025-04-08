@@ -45,12 +45,12 @@ const PrimaryButton: React.FC<GradientButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 25,
+    borderRadius: 12,
+    height: 50,
     overflow: 'hidden',
   },
   gradient: {
-    // paddingVertical: 12,
-    // paddingHorizontal: 20,
+    flex: 1,
   },
   text: {
     color: '#fff',
@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   gredientContainer: {
+    flex: 1,
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,

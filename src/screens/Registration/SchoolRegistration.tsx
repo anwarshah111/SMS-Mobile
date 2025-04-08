@@ -18,9 +18,31 @@ import * as Yup from 'yup';
 import {LinearGradient} from 'react-native-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import PrimaryButton from '../../components/Buttons/PrimaryButton';
+import {useRegisterSchoolssMutation} from '../../queries/schoolQueries/schoolQueries';
+import {showToast} from '../../components/Toasters/CustomToasts';
+import ImagePickerModal from '../../components/ImagePickers/ImagePicker';
 
-const SchoolRegistration = () => {
+const SchoolRegistration = ({navigation}: any) => {
   const insets = useSafeAreaInsets();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [photo, setPhoto] = useState(null);
+
+  const {mutate} = useRegisterSchoolssMutation({
+    onSuccess: () => {
+      navigation.goBack();
+      showToast('Request sent to admin!');
+    },
+    onError: error => {
+      if (error.response.data?.code === 'DUP_EMAIL') {
+        showToast('School with this email already exists!');
+      } else if (error.response.data?.code === 'INVALID_SCHOOL_ID') {
+        showToast('Invalid School ID!');
+      } else {
+        console.log('error', error.response.data);
+        showToast(error.response.data?.message);
+      }
+    },
+  });
   const initialValues = {
     name: '',
     address: '',
@@ -45,9 +67,7 @@ const SchoolRegistration = () => {
       .email('Invalid email address')
       .required('Email is required'),
     password: Yup.string().required('password is required'),
-    website: Yup.string()
-      .url('Invalid URL format')
-      .required('Website is required'),
+    website: Yup.string().url('Invalid URL format').notRequired(),
     principal: Yup.string().required('Principal name is required'),
     establishedYear: Yup.number()
       .typeError('Year must be a number')
@@ -62,13 +82,13 @@ const SchoolRegistration = () => {
   });
 
   const handleSubmit = values => {
-    // In a real app, you would send this data to your API
-    console.log('Form submitted with values:', values);
-    Alert.alert(
-      'Registration Successful',
-      'School registration information has been submitted',
-      [{text: 'OK'}],
-    );
+    const data = {
+      ...values,
+      countryCode: '+91',
+      photo: photo?.path || '',
+    };
+    // console.log(data);
+    mutate({data});
   };
 
   const FormField = ({label, name, formikProps, icon, ...rest}) => {
@@ -119,6 +139,35 @@ const SchoolRegistration = () => {
                 <Text style={styles.schoolIconText}>🏫</Text>
               </View>
             </View> */}
+            <View style={styles.photoUploadContainer}>
+              <TouchableOpacity
+                style={styles.photoContainer}
+                onPress={() => setModalVisible(true)}
+                activeOpacity={0.7}>
+                <View style={styles.photoWrapper}>
+                  {photo?.path ? (
+                    <Image
+                      source={{uri: photo.path}}
+                      style={styles.profileImage}
+                    />
+                  ) : (
+                    <View style={styles.placeholderContainer}>
+                      <View style={styles.cameraIconContainer}>
+                        <Text style={styles.cameraIcon}>📷</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+                <LinearGradient
+                  colors={['#4481EB', '#04BEFE']}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
+                  style={styles.editBadge}>
+                  <Text style={styles.editBadgeText}>+</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <Text style={styles.photoHelpText}>Upload school profile</Text>
+            </View>
 
             <Formik
               initialValues={initialValues}
@@ -223,13 +272,20 @@ const SchoolRegistration = () => {
                   />
                   <PrimaryButton
                     title="Register School"
-                    onPress={() => {}}
+                    onPress={() => formikProps.handleSubmit()}
                     // disabled={formikProps.is}
                   />
                 </View>
               )}
             </Formik>
           </View>
+          <ImagePickerModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            onImagePicked={img => setPhoto(img)}
+            multiple={false}
+            isProfileImage={true}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -242,7 +298,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   gradientHeader: {
-    paddingBottom: 30,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -269,18 +324,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   formContainer: {
-    // marginTop: -30,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
+    marginTop: 10,
     paddingHorizontal: 20,
     paddingBottom: 30,
     paddingTop: 40,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 15,
     elevation: 5,
   },
@@ -374,6 +424,84 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 0.5,
+  },
+  photoUploadContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+    marginTop: -20,
+  },
+  photoContainer: {
+    position: 'relative',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoWrapper: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: '#fff',
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 65,
+  },
+  placeholderContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F0F8FF',
+  },
+  cameraIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraIcon: {
+    fontSize: 24,
+    color: '#5C93D8',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  photoHelpText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
   },
 });
 

@@ -129,4 +129,22 @@ export const useRemoveStudentsMutation = () => {
     },
   });
 };
+
+const registerSchoolHandler = async ({data}: any) => {
+  try {
+    const res = await axios.post(`${BASE_URL}/api/schools/register`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error updating school details:', error.response);
+    throw error;
+  }
+};
+
+export const useRegisterSchoolssMutation = config => {
+  return useMutation({
+    mutationFn: registerSchoolHandler,
+    ...config,
+  });
+};
+
 export default useFetchStudents;

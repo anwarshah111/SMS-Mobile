@@ -70,9 +70,7 @@ const ProfileScreen = ({navigation}: any) => {
             <Text style={styles.statLabel}>Followers</Text>
           </TouchableOpacity>
           <View style={styles.statDivider} />
-          <TouchableOpacity
-            style={styles.statItem}
-            onPress={() => navigation.navigate('SchoolRegistration')}>
+          <TouchableOpacity style={styles.statItem}>
             <Text style={styles.statValue}>{user.following}</Text>
             <Text style={styles.statLabel}>Following</Text>
           </TouchableOpacity>
