@@ -14,16 +14,28 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import {useLoginSchoolMutation} from '../../queries/schoolQueries/schoolQueries';
+import {showToast} from '../../components/Toasters/CustomToasts';
 
 const SchoolLogin = ({navigation}: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const emailInputRef = useRef(null);
+  const {mutate} = useLoginSchoolMutation({
+    onSuccess: () => {
+      // navigation.navigate('Home');
+      console.log('SUCCS')
+    },
+    onError: (error: any) => {
+      console.log('error', error.response.data?.message);
+      showToast(error.response.data?.message);
+    },
+  });
 
   const handleRegistration = () => {
     // Handle registration flow
     navigation.navigate('SchoolRegistration');
-    console.log('Navigate to registration');
+    // console.log('Navigate to registration');
   };
 
   const navigateToSchoolLogin = () => {
@@ -33,6 +45,9 @@ const SchoolLogin = ({navigation}: any) => {
 
   const handleLogin = () => {
     console.log('LOgin');
+    if (email && password) {
+      mutate({data: {email, password}});
+    }
   };
 
   // Phone number input screen
@@ -63,7 +78,6 @@ const SchoolLogin = ({navigation}: any) => {
             value={email}
             onChangeText={text => setEmail(text)}
             autoFocus={false}
-            maxLength={10}
           />
         </View>
         <View style={styles.phoneInputWrapper}>

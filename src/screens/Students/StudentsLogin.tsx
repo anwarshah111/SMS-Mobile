@@ -67,11 +67,15 @@ const StudentLogin = ({navigation}: any) => {
   const verifyOTPMutate = useStudentRequestOTPVeifyMutation({
     onSuccess: data => {
       setStudent(data.student);
+      AsyncStorage.setItem('@STUDENT_TOKEN', data.token);
       AsyncStorage.setItem('@STUDENT_ID', data.student?._id);
       AsyncStorage.setItem('@STUDENT_MOBILE_NUMBER', phoneNumber);
       AsyncStorage.setItem('@STUDENT_COUNTRY_CODE', '+91');
       navigation.navigate('DashBoard');
-      useStudentStore.setState({studentId: data.student?._id});
+      useStudentStore.setState({
+        studentId: data.student?._id,
+        studentToken: data?.token,
+      });
     },
     onError: error => {
       showToast(error.response.data?.message);

@@ -1,12 +1,10 @@
 import {useMutation, useQuery} from '@tanstack/react-query';
-import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000';
+import api from '../../axios/axios';
+
 export const fetchPendingSchools = async () => {
   try {
-    const res = await axios.get(
-      `${BASE_URL}/api/schools/getSchoolList?status=P`,
-    );
+    const res = await api.get(`/api/schools/getSchoolList?status=P`);
     return res.data;
   } catch (error) {
     console.error('Error fetching videos:', error);
@@ -21,10 +19,7 @@ const useFetchSchools = () =>
 
 const updateSchoolStatus = async ({id, data}: any) => {
   try {
-    const res = await axios.put(
-      `${BASE_URL}/api/admin/school-request/${id}/status`,
-      data,
-    );
+    const res = await api.put(`/api/admin/school-request/${id}/status`, data);
     return res.data;
   } catch (error) {
     console.error('Error updating school details:', error);

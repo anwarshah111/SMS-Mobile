@@ -27,6 +27,8 @@ const StudentProfileScreen = ({navigation}: any) => {
     AsyncStorage.removeItem('@STUDENT_ID');
     AsyncStorage.removeItem('@STUDENT_MOBILE_NUMBER');
     AsyncStorage.removeItem('@STUDENT_COUNTRY_CODE');
+    AsyncStorage.removeItem('@STUDENT_TOKEN');
+
     useStudentStore.getState().resetStudentStore();
     navigation.reset({
       index: 0,

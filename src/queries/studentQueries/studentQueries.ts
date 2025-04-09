@@ -1,17 +1,13 @@
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
-import axios from 'axios';
+
 import {showToast} from '../../components/Toasters/CustomToasts';
 import useStudentStore from '../../zustand/studentStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const BASE_URL = 'http://localhost:3000';
+import api from '../../axios/axios';
 
 const registerStudentsHandler = async ({data}: any) => {
   try {
-    const res = await axios.post(
-      `${BASE_URL}/api/students/register-student`,
-      data,
-    );
+    const res = await api.post(`/api/students/register-student`, data);
     return res.data;
   } catch (error) {
     console.error('Error updating school details:', error.response);
@@ -28,10 +24,7 @@ export const useRegisterStudentsMutation = config => {
 
 const sendStudentLoginOTPHandler = async ({data}: any) => {
   try {
-    const res = await axios.post(
-      `${BASE_URL}/api/students/send-student-otp`,
-      data,
-    );
+    const res = await api.post(`/api/students/send-student-otp`, data);
     return res.data;
   } catch (error) {
     console.error('Error updating school details:', error.response);
@@ -47,10 +40,7 @@ export const useStudentRequestLoginOTPMutation = config => {
 };
 const verifyStudentLoginOTPHandler = async ({data}: any) => {
   try {
-    const res = await axios.post(
-      `${BASE_URL}/api/students/verify-student-otp`,
-      data,
-    );
+    const res = await api.post(`/api/students/verify-student-otp`, data);
 
     return res.data;
   } catch (error) {
@@ -67,16 +57,17 @@ export const useStudentRequestOTPVeifyMutation = config => {
 };
 
 export const fetchLoginStudentDetails = async (data: any) => {
-  let studentMobileNumber, studentCountryCode;
+  let studentMobileNumber, studentCountryCode, studentToken;
 
   if (!data) {
     studentMobileNumber = await AsyncStorage.getItem('@STUDENT_MOBILE_NUMBER');
     studentCountryCode = await AsyncStorage.getItem('@STUDENT_COUNTRY_CODE');
+    studentToken = await AsyncStorage.getItem('@STUDENT_TOKEN');
   }
-  if (data || (studentMobileNumber && studentCountryCode)) {
+  if (data || (studentMobileNumber && studentCountryCode && studentToken)) {
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/students/get-login-student-details`,
+      const res = await api.post(
+        `/api/students/get-login-student-details`,
         data
           ? data
           : {
@@ -86,6 +77,8 @@ export const fetchLoginStudentDetails = async (data: any) => {
       );
       useStudentStore.setState({
         studentDetails: res.data.student,
+        studentToken: res.data.student?.token,
+        studentId: res.data?.student?._id,
       });
       return res.data;
     } catch (error) {

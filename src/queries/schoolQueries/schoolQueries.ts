@@ -4,14 +4,12 @@ import {
   QueryClient,
   useQueryClient,
 } from '@tanstack/react-query';
-import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000';
+import api from '../../axios/axios';
+
 export const fetchPendingStudents = async id => {
   try {
-    const res = await axios.get(
-      `${BASE_URL}/api/schools/getPendingStudents?schoolID=${id}`,
-    );
+    const res = await api.get(`/api/schools/getPendingStudents?schoolID=${id}`);
     return res.data;
   } catch (error) {
     console.error('Error fetching videos:', error);
@@ -26,10 +24,10 @@ const useFetchStudents = id =>
 
 const updateStudentStatus = async ({studentID, status}: any) => {
   try {
-    const res = await axios.put(
-      `${BASE_URL}/api/schools/updateStudentRequestStatus`,
-      {studentID: studentID, status: status},
-    );
+    const res = await api.put(`/api/schools/updateStudentRequestStatus`, {
+      studentID: studentID,
+      status: status,
+    });
     return res.data;
   } catch (error) {
     console.error('Error updating school details:', error);
@@ -71,8 +69,8 @@ export const useUpdateStudentRequestMutate = () => {
 
 export const fetchApprovedStudents = async id => {
   try {
-    const res = await axios.get(
-      `${BASE_URL}/api/schools/getApprovedStudents?&schoolId=${id}`,
+    const res = await api.get(
+      `/api/schools/getApprovedStudents?&schoolId=${id}`,
     );
     return res.data;
   } catch (error) {
@@ -88,9 +86,7 @@ export const useFetchApprovedStudents = id =>
 
 const removeStudentFromSchool = async ({id}: any) => {
   try {
-    const res = await axios.delete(
-      `${BASE_URL}/api/schools/removeStudentFromSchool/${id}`,
-    );
+    const res = await api.delete(`/api/schools/removeStudentFromSchool/${id}`);
     return res.data;
   } catch (error) {
     console.error('Error updating school details:', error.response);
@@ -132,7 +128,7 @@ export const useRemoveStudentsMutation = () => {
 
 const registerSchoolHandler = async ({data}: any) => {
   try {
-    const res = await axios.post(`${BASE_URL}/api/schools/register`, data);
+    const res = await api.post(`/api/schools/register`, data);
     return res.data;
   } catch (error) {
     console.error('Error updating school details:', error.response);
@@ -143,6 +139,23 @@ const registerSchoolHandler = async ({data}: any) => {
 export const useRegisterSchoolssMutation = config => {
   return useMutation({
     mutationFn: registerSchoolHandler,
+    ...config,
+  });
+};
+
+const loginSchoolUsingEmailAndPassword = async ({data}: any) => {
+  try {
+    const res = await api.post(`/api/schools/login`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error updating school details:', error.response);
+    throw error;
+  }
+};
+
+export const useLoginSchoolMutation = config => {
+  return useMutation({
+    mutationFn: loginSchoolUsingEmailAndPassword,
     ...config,
   });
 };
