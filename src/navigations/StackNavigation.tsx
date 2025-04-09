@@ -19,12 +19,13 @@ import SchoolLogin from '../screens/Schools/SchoolLogin';
 import StudentsRegistration from '../screens/Students/StudentsRegistration';
 
 const Stack = createStackNavigator();
-const StackNavigation = () => {
+const StackNavigation = ({isLoggedIn}: {isLoggedIn: boolean}) => {
+  const initialRouteName = isLoggedIn ? 'DashBoard' : 'StudentLogin';
   return (
     <Stack.Navigator
-      initialRouteName="Dashboard"
+      initialRouteName={initialRouteName}
       screenOptions={{headerShown: false}}>
-      <Stack.Screen name="Dashboard" component={BottomTabNavigation} />
+      {/* <Stack.Screen name="Dashboard" component={BottomTabNavigation} /> */}
       <Stack.Screen name="Test" component={TestScreen} />
       <Stack.Screen name="TestDetails" component={TestDetails} />
       <Stack.Screen name="EditTest" component={EditTests} />

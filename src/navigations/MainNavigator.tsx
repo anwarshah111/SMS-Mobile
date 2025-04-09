@@ -3,12 +3,10 @@ import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import StackNavigation from './StackNavigation';
 
-const MainNavigator = () => {
-  const animatedPlayerStyle = {};
-
+const MainNavigator = ({isLoggedIn}: {isLoggedIn: boolean}) => {
   return (
     <NavigationContainer>
-      <StackNavigation />
+      <StackNavigation isLoggedIn={isLoggedIn} />
     </NavigationContainer>
   );
 };

@@ -21,28 +21,17 @@ import {
 } from '../../queries/studentQueries/studentQueries';
 import {showToast} from '../../components/Toasters/CustomToasts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import useStudentStore from '../../zustand/studentStore';
 
 const StudentLogin = ({navigation}: any) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [studentData, setStudentData] = useState(null);
   const [student, setStudent] = useState(null);
-  const [isEnabled, setIsEnabled] = useState(false);
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const phoneInputRef = useRef(null);
-  const {data} = useFetchLoginStudentDetails(
-    student?._id,
-    student,
-    isEnabled, // Controls whether the query executes
-  );
 
-  useEffect(() => {
-    if (data) {
-      setStudentData(data);
-      AsyncStorage.setItem('@STUDENT_ID', student?._id);
-      navigation.navigate('DashBoard');
-    }
-  }, [data, navigation]);
+  useFetchLoginStudentDetails(student, student?._id ? true : false);
 
   const otpInputRefs = useRef([...Array(6)].map(() => React.createRef()));
 
@@ -78,7 +67,11 @@ const StudentLogin = ({navigation}: any) => {
   const verifyOTPMutate = useStudentRequestOTPVeifyMutation({
     onSuccess: data => {
       setStudent(data.student);
-      setIsEnabled(true);
+      AsyncStorage.setItem('@STUDENT_ID', data.student?._id);
+      AsyncStorage.setItem('@STUDENT_MOBILE_NUMBER', phoneNumber);
+      AsyncStorage.setItem('@STUDENT_COUNTRY_CODE', '+91');
+      navigation.navigate('DashBoard');
+      useStudentStore.setState({studentId: data.student?._id});
     },
     onError: error => {
       showToast(error.response.data?.message);
@@ -135,13 +128,8 @@ const StudentLogin = ({navigation}: any) => {
   };
 
   const handleResendOtp = () => {
-    // Reset OTP inputs
     setOtp(['', '', '', '', '', '']);
-
-    // In a real app, call API to resend OTP
-    console.log('Resending OTP to', phoneNumber);
-
-    // Focus on first input
+    mutate({data: {mobileNumber: phoneNumber, countryCode: '+91'}});
     setTimeout(() => {
       if (otpInputRefs.current[0]?.current) {
         otpInputRefs.current[0].current.focus();

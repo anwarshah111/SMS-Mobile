@@ -13,16 +13,20 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useFetchLoginStudentDetails} from '../../queries/studentQueries/studentQueries';
+import useStudentStore from '../../zustand/studentStore';
 // import {BlurView} from '@react-native-community/blur';
 
 const {width} = Dimensions.get('window');
 
 const DashBoard = () => {
   const insets = useSafeAreaInsets();
-  const [studentName] = useState('Alex Johnson');
-  const [schoolName] = useState('Westfield Academy');
-  const [studentClass] = useState('Grade 10-B');
-  const [attendanceStatus] = useState('Present'); // Can be 'Present', 'Absent', 'Late'
+  // const [studentName] = useState('Alex Johnson');
+  // const [schoolName] = useState('Westfield Academy');
+  // const [studentClass] = useState('Grade 10-B');
+  const [attendanceStatus] = useState('Present');
+  // const {data} = useFetchLoginStudentDetails();
+  const {studentDetails} = useStudentStore();
 
   const modules = [
     {
@@ -183,12 +187,14 @@ const DashBoard = () => {
 
             <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.studentName}>{studentName}</Text>
+              <Text style={styles.studentName}>
+                {studentDetails?.studentName}
+              </Text>
               <View style={styles.schoolInfoRow}>
                 <Icon name="school" size={14} color="rgba(255,255,255,0.7)" />
-                <Text style={styles.schoolName}>{schoolName}</Text>
+                <Text style={styles.schoolName}>{studentDetails?.school?.name}</Text>
                 <View style={styles.classBadge}>
-                  <Text style={styles.classText}>{studentClass}</Text>
+                  <Text style={styles.classText}>{studentDetails?.grade}</Text>
                 </View>
               </View>
             </View>
