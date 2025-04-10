@@ -17,10 +17,11 @@ import ManageStudents from '../screens/Schools/ManageStudents';
 import StudentLogin from '../screens/Students/StudentsLogin';
 import SchoolLogin from '../screens/Schools/SchoolLogin';
 import StudentsRegistration from '../screens/Students/StudentsRegistration';
+import SchoolProfileScreen from '../screens/Schools/SchoolProfileScreen';
 
 const Stack = createStackNavigator();
-const StackNavigation = ({isLoggedIn}: {isLoggedIn: boolean}) => {
-  const initialRouteName = isLoggedIn ? 'DashBoard' : 'StudentLogin';
+const StackNavigation = ({isLoggedIn}: {isLoggedIn: string}) => {
+  const initialRouteName = isLoggedIn;
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}
@@ -45,6 +46,10 @@ const StackNavigation = ({isLoggedIn}: {isLoggedIn: boolean}) => {
       <Stack.Screen
         name="StudentsRegistration"
         component={StudentsRegistration}
+      />
+      <Stack.Screen
+        name="SchoolProfileScreen"
+        component={SchoolProfileScreen}
       />
       {/* <Stack.Screen name="Profile" component={BottomTabNavigation} /> */}
     </Stack.Navigator>

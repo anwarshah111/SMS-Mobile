@@ -9,21 +9,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from './screens/SplashScreen/SplashScreen';
 import {useFetchLoginStudentDetails} from './queries/studentQueries/studentQueries';
 import {toastConfig} from './components/Toasters/CustomToasts';
+import {useFetchSchoolDetailsByIdQuery} from './queries/schoolQueries/schoolQueries';
 
 const Index = () => {
   // const insets = useSafeAreaInsets();
-  const [isLoggedIn, setLoggedIn] = useState(false);
+  const [isLoggedIn, setLoggedIn] = useState('StudentLogin');
   const [isSplashVisible, setSplashVisible] = useState(true);
 
   useFetchLoginStudentDetails(null, true);
+  useFetchSchoolDetailsByIdQuery(null, true);
 
   const checkLogin = async () => {
     try {
       const startTime = Date.now();
       const studentID = await AsyncStorage.getItem('@STUDENT_ID');
+      const SchoolToken = await AsyncStorage.getItem('@SCHOOOL_TOKEN');
 
       if (studentID) {
-        setLoggedIn(true);
+        setLoggedIn('DashBoard');
+      } else if (SchoolToken) {
+        setLoggedIn('SchoolsDashboard');
       }
       // Ensure splash screen shows for at least 1.5 seconds
       const elapsedTime = Date.now() - startTime;

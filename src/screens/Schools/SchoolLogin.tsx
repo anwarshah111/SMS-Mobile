@@ -14,17 +14,35 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import {useLoginSchoolMutation} from '../../queries/schoolQueries/schoolQueries';
+import {
+  useFetchSchoolDetailsByIdQuery,
+  useLoginSchoolMutation,
+} from '../../queries/schoolQueries/schoolQueries';
 import {showToast} from '../../components/Toasters/CustomToasts';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useSchoolStore from '../../zustand/schoolStore';
 
 const SchoolLogin = ({navigation}: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const emailInputRef = useRef(null);
+  const [schoolID, setSchoolId] = useState('');
+
+  useFetchSchoolDetailsByIdQuery({id: schoolID}, schoolID ? true : false);
+
   const {mutate} = useLoginSchoolMutation({
-    onSuccess: () => {
-      // navigation.navigate('Home');
-      console.log('SUCCS')
+    onSuccess: data => {
+      // console.log('DATA', data);
+      setSchoolId(data?.school?._id);
+      AsyncStorage.setItem('@SCHOOOL_TOKEN', data?.school?.token);
+      AsyncStorage.setItem('@SCHOOL_ID', data?.school?._id);
+      useSchoolStore.setState({
+        schoolId: data?.school?._id,
+        schoolToken: data?.school?.token,
+        schoolDetails: data?.school,
+      });
+      navigation.navigate('SchoolsDashboard');
+      // console.log('SUCCS')
     },
     onError: (error: any) => {
       console.log('error', error.response.data?.message);
@@ -44,7 +62,7 @@ const SchoolLogin = ({navigation}: any) => {
   };
 
   const handleLogin = () => {
-    console.log('LOgin');
+    // console.log('LOgin');
     if (email && password) {
       mutate({data: {email, password}});
     }
@@ -74,6 +92,7 @@ const SchoolLogin = ({navigation}: any) => {
             ref={emailInputRef}
             style={styles.phoneInput}
             placeholder="Email"
+            autoCapitalize="none"
             keyboardType="email-address"
             value={email}
             onChangeText={text => setEmail(text)}

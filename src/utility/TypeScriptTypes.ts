@@ -4,3 +4,9 @@ export interface StudentStoreTypes {
   studentId: string | null;
   resetStudentStore: () => void;
 }
+export interface SchoolStoreTypes {
+  schoolDetails: object;
+  schoolToken: string | null;
+  schoolId: string | null;
+  resetSchoolStore: () => void;
+}

@@ -6,6 +6,8 @@ import {
 } from '@tanstack/react-query';
 
 import api from '../../axios/axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useSchoolStore from '../../zustand/schoolStore';
 
 export const fetchPendingStudents = async id => {
   try {
@@ -159,5 +161,46 @@ export const useLoginSchoolMutation = config => {
     ...config,
   });
 };
+
+export const fetchSchoolDetailsById = async (data: any) => {
+  let schoolToken, schoolID;
+  if (!data) {
+    schoolToken = await AsyncStorage.getItem('@SCHOOOL_TOKEN');
+    schoolID = await AsyncStorage.getItem('@SCHOOL_ID');
+  }
+
+  if (data || schoolID) {
+    try {
+      console.log('SCHOOL DATA');
+      const res = await api.post(
+        `/api/schools/get-school-details-by-id`,
+        data
+          ? data
+          : { 
+              id: schoolID,
+            },
+      );
+      useSchoolStore.setState({
+        schoolDetails: res.data.school,
+        schoolToken: res.data.school?.token,
+        schoolId: res.data?.school?._id,
+      });
+      return res.data;
+    } catch (error) {
+      console.error('Error fetching:', error);
+    }
+  } else {
+    return null;
+  }
+};
+
+export const useFetchSchoolDetailsByIdQuery = (data, enabled) =>
+  useQuery({
+    queryKey: ['schoolDetails'],
+    enabled: enabled,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryFn: () => fetchSchoolDetailsById(data),
+  });
 
 export default useFetchStudents;

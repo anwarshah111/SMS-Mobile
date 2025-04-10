@@ -10,9 +10,12 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async config => {
-    const ath_token = await AsyncStorage.getItem('@STUDENT_TOKEN');
-    if (ath_token) {
-      config.headers.Authorization = `${ath_token}`;
+    const studentToken = await AsyncStorage.getItem('@STUDENT_TOKEN');
+    const schoolToken = await AsyncStorage.getItem('@SCHOOOL_TOKEN');
+    if (studentToken) {
+      config.headers.Authorization = `${studentToken}`;
+    } else if (schoolToken) {
+      config.headers.Authorization = `${schoolToken}`;
     }
     return config;
   },
