@@ -176,7 +176,7 @@ export const fetchSchoolDetailsById = async (data: any) => {
         `/api/schools/get-school-details-by-id`,
         data
           ? data
-          : { 
+          : {
               id: schoolID,
             },
       );
@@ -202,5 +202,77 @@ export const useFetchSchoolDetailsByIdQuery = (data, enabled) =>
     refetchOnWindowFocus: false,
     queryFn: () => fetchSchoolDetailsById(data),
   });
+
+export const fetchSchoolTeachers = async (id: any) => {
+  try {
+    const res = await api.get(`/api/schools/get-school-teachers/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching:', error);
+  }
+};
+
+export const useFetchSchoolTeachers = id =>
+  useQuery({
+    queryKey: ['schoolTeachers'],
+    queryFn: () => fetchSchoolTeachers(id),
+  });
+
+const addSchoolTeachersHandler = async ({data}: any) => {
+  try {
+    const res = await api.post(`/api/schools/add-school-teachers`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error updating school details:', error.response);
+    throw error;
+  }
+};
+
+export const useAddTeachersMutation = config => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addSchoolTeachersHandler,
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['schoolTeachers']});
+    },
+    ...config,
+  });
+};
+
+export const fetchSchoolClasses = async (id: any) => {
+  try {
+    const res = await api.get(`/api/schools/get-school-clasess/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching:', error);
+  }
+};
+
+export const useFetchSchoolClassess = id =>
+  useQuery({
+    queryKey: ['schoolClasses'],
+    queryFn: () => fetchSchoolClasses(id),
+  });
+
+const addSchoolClassHandler = async ({data}: any) => {
+  try {
+    const res = await api.post(`/api/schools/add-school-class`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error adding class', error.response);
+    throw error;
+  }
+};
+
+export const useAddSchoolClassMutation = config => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addSchoolClassHandler,
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['schoolClasses']});
+    },
+    ...config,
+  });
+};
 
 export default useFetchStudents;

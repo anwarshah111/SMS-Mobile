@@ -4,13 +4,14 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SchoolHome from './SchoolHome';
+import ManageStudents from './ManageStudents';
 
 // Create a Tab Navigator
 const Tab = createBottomTabNavigator();
 
-const StudentsScreen = () => (
-  <Text style={styles.screenText}>Students Screen</Text>
-);
+// const StudentsScreen = () => (
+//   <Text style={styles.screenText}>Students Screen</Text>
+// );
 const CalendarScreen = () => (
   <Text style={styles.screenText}>Calendar Screen</Text>
 );
@@ -38,8 +39,8 @@ const SchoolDashboard = () => {
         }}
       />
       <Tab.Screen
-        name="Students"
-        component={StudentsScreen}
+        name="ManageStudents"
+        component={ManageStudents}
         options={{
           tabBarIcon: ({color, size}) => (
             <Icon name="account-group" size={size} color={color} />

@@ -18,6 +18,10 @@ import StudentLogin from '../screens/Students/StudentsLogin';
 import SchoolLogin from '../screens/Schools/SchoolLogin';
 import StudentsRegistration from '../screens/Students/StudentsRegistration';
 import SchoolProfileScreen from '../screens/Schools/SchoolProfileScreen';
+import AddTeachersScreen from '../screens/Schools/AddTeachers';
+import TeachersScreen from '../screens/Schools/Teachers';
+import ClassroomScreen from '../screens/Schools/ClassRoom';
+import AddClassroomScreen from '../screens/Schools/AddClasses';
 
 const Stack = createStackNavigator();
 const StackNavigation = ({isLoggedIn}: {isLoggedIn: string}) => {
@@ -51,6 +55,10 @@ const StackNavigation = ({isLoggedIn}: {isLoggedIn: string}) => {
         name="SchoolProfileScreen"
         component={SchoolProfileScreen}
       />
+      <Stack.Screen name="AddTeachersScreen" component={AddTeachersScreen} />
+      <Stack.Screen name="TeachersScreen" component={TeachersScreen} />
+      <Stack.Screen name="ClassroomScreen" component={ClassroomScreen} />
+      <Stack.Screen name="AddClassroomScreen" component={AddClassroomScreen} />
       {/* <Stack.Screen name="Profile" component={BottomTabNavigation} /> */}
     </Stack.Navigator>
   );

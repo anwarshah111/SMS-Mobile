@@ -154,9 +154,9 @@ const SchoolHome = ({navigation}: any) => {
                   styles.actionIconContainer,
                   {backgroundColor: '#F0FDF4'},
                 ]}>
-                <Icon name="clipboard-list" size={24} color="#22C55E" />
+                <Icon name="account-check" size={24} color="#22C55E" />
               </View>
-              <Text style={styles.actionText}>Manage Students</Text>
+              <Text style={styles.actionText}>Attandance</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard}>
@@ -169,20 +169,32 @@ const SchoolHome = ({navigation}: any) => {
               </View>
               <Text style={styles.actionText}>Schedule</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('TeachersScreen')}>
+              <View
+                style={[
+                  styles.actionIconContainer,
+                  {backgroundColor: '#d1f1eb'},
+                ]}>
+                <Icon name="account-group" size={24} color="#55AD9B" />
+              </View>
+              <Text style={styles.actionText}>Teachers</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.actionCard}
               onPress={() => {
-                AsyncStorage.clear();
+                navigation.navigate('ClassroomScreen');
               }}>
               <View
                 style={[
                   styles.actionIconContainer,
                   {backgroundColor: '#FEE2E2'},
                 ]}>
-                <Icon name="bell" size={24} color="#EF4444" />
+                <Icon name="google-classroom" size={24} color="#EF4444" />
               </View>
-              <Text style={styles.actionText}>Notifications</Text>
+              <Text style={styles.actionText}>Classes</Text>
             </TouchableOpacity>
           </View>
 
