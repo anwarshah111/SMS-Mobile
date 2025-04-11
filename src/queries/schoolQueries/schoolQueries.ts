@@ -275,4 +275,40 @@ export const useAddSchoolClassMutation = config => {
   });
 };
 
+const addSchoolSubjects = async ({data}: any) => {
+  try {
+    const res = await api.post(`/api/schools/add-school-subject`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error adding subject', error.response);
+    throw error;
+  }
+};
+
+export const useAddSchoolSubjectsMutation = config => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addSchoolSubjects,
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['schoolSubjects']});
+    },
+    ...config,
+  });
+};
+
+export const fetchSchoolSubjects = async (id: any) => {
+  try {
+    const res = await api.get(`/api/schools/get-school-subjects/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching:', error);
+  }
+};
+
+export const useFetchSchoolSubjectQuery = id =>
+  useQuery({
+    queryKey: ['schoolSubjects'],
+    queryFn: () => fetchSchoolSubjects(id),
+  });
+
 export default useFetchStudents;

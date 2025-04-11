@@ -10,6 +10,7 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import moment from 'moment';
 import Ionics from 'react-native-vector-icons/Ionicons';
@@ -166,7 +167,6 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#4F46E5',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
     paddingBottom: 16,
     elevation: 4,
     shadowColor: '#000',

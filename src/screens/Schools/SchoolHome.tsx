@@ -156,7 +156,7 @@ const SchoolHome = ({navigation}: any) => {
                 ]}>
                 <Icon name="account-check" size={24} color="#22C55E" />
               </View>
-              <Text style={styles.actionText}>Attandance</Text>
+              <Text style={styles.actionText}>Attendance</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard}>
@@ -195,6 +195,20 @@ const SchoolHome = ({navigation}: any) => {
                 <Icon name="google-classroom" size={24} color="#EF4444" />
               </View>
               <Text style={styles.actionText}>Classes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => {
+                navigation.navigate('SubjectsScreen');
+              }}>
+              <View
+                style={[
+                  styles.actionIconContainer,
+                  {backgroundColor: '#f6f4f1'},
+                ]}>
+                <Icon name="book-open-page-variant" size={24} color="#a28a72" />
+              </View>
+              <Text style={styles.actionText}>Subjects</Text>
             </TouchableOpacity>
           </View>
 
