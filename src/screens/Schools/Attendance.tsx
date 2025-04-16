@@ -16,25 +16,54 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   useFetchApprovedStudents,
+  useFetchAttendanceExistQuery,
   useFetchSchoolClassess,
   useFetchSchoolSubjectQuery,
+  useFetchSchoolTeachers,
+  useFetchTeachersAttendanceExistQuery,
   useMarkStudentAttendaceMutation,
 } from '../../queries/schoolQueries/schoolQueries';
 import useSchoolStore from '../../zustand/schoolStore';
 import {showToast} from '../../components/Toasters/CustomToasts';
+import moment from 'moment';
 
 const {width} = Dimensions.get('window');
 
 const AttendanceScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
-  const [selectedClass, setSelectedClass] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [students, setStudents] = useState([]);
   const schoolId = useSchoolStore(state => state.schoolId);
   const classesData = useFetchSchoolClassess(schoolId);
   const subjectsData = useFetchSchoolSubjectQuery(schoolId);
   const studentsData = useFetchApprovedStudents(schoolId);
+  const [activeTab, setActiveTab] = useState('students'); // 'students' or 'teachers'
+  const [teachers, setTeachers] = useState([]);
+  const {
+    data: schoolTeachers,
+    refetch: fetchSchoolTeachers,
+    isPending,
+    isError,
+  } = useFetchSchoolTeachers(schoolId);
+  const {data: attendanceExists} = useFetchAttendanceExistQuery(
+    {
+      schoolId: schoolId,
+      subjectId: selectedSubject?._id,
+      classId: selectedClass?._id,
+      date: moment().format('YYYY-MM-DD'),
+    },
+    selectedSubject?._id ? true : false,
+  );
+
+  const {data: teachersAttendanceExists} = useFetchTeachersAttendanceExistQuery(
+    {
+      schoolId: schoolId,
+      date: moment().format('YYYY-MM-DD'),
+    },
+    schoolId ? true : false,
+  );
 
   useEffect(() => {
     if (classesData.data && subjectsData.data && studentsData.data) {
@@ -104,25 +133,17 @@ const AttendanceScreen = ({navigation}) => {
     const attendanceData = {
       schoolId: schoolId,
       date: date,
-      students: [
-        {
-          classId: selectedClass._id,
-          className: selectedClass.name,
-          subjects: [
-            {
-              subjectId: selectedSubject._id,
-              subjectName: selectedSubject.name,
-              students: students.map(student => ({
-                studentId: student.studentId,
-                name: student.studentName,
-                rollNumber: student.rollNumber,
-                profileImage: student.profileImage,
-                status: student.status,
-              })),
-            },
-          ],
-        },
-      ],
+      classId: selectedClass._id,
+      className: selectedClass.name,
+      subjectId: selectedSubject._id,
+      subjectName: selectedSubject.name,
+      students: students.map(student => ({
+        studentId: student.studentId,
+        name: student.studentName,
+        rollNumber: student.rollNumber,
+        profileImage: student.profileImage,
+        status: student.status,
+      })),
     };
     mutate({data: attendanceData});
     console.log('Saving attendance data:', attendanceData);
@@ -130,21 +151,27 @@ const AttendanceScreen = ({navigation}) => {
   };
 
   const markAllPresent = () => {
-    setStudents(prevStudents =>
-      prevStudents.map(student => ({...student, status: 'present'})),
-    );
+    if (activeTab === 'teachers') {
+      setTeachers(prevTeachers =>
+        prevTeachers.map(teacher => ({...teacher, status: 'present'})),
+      );
+    } else {
+      setTeachers(prevStudents =>
+        prevStudents.map(student => ({...student, status: 'present'})),
+      );
+    }
   };
 
   const markAllAbsent = () => {
-    setStudents(prevStudents =>
-      prevStudents.map(student => ({...student, status: 'absent'})),
-    );
-  };
-
-  const markAllLeave = () => {
-    setStudents(prevStudents =>
-      prevStudents.map(student => ({...student, status: 'leave'})),
-    );
+    if (activeTab === 'teachers') {
+      setTeachers(prevTeachers =>
+        prevTeachers.map(teacher => ({...teacher, status: 'absent'})),
+      );
+    } else {
+      setStudents(prevStudents =>
+        prevStudents.map(student => ({...student, status: 'absent'})),
+      );
+    }
   };
 
   const getAttendanceStats = () => {
@@ -274,6 +301,58 @@ const AttendanceScreen = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const stats = getAttendanceStats();
 
+  const renderTeacherItem = ({item}) => (
+    <View style={styles.studentCardContainer}>
+      <TouchableOpacity
+        style={styles.studentCard}
+        onPress={() => toggleTeacherAttendance(item.teacherId)}>
+        <View style={styles.studentInfo}>
+          <View style={styles.avatarContainer}>
+            <Image source={{uri: item.profileImage}} style={styles.avatar} />
+          </View>
+          <View style={styles.studentDetails}>
+            <Text style={styles.studentName}>{item.teacherName}</Text>
+            <Text style={styles.rollNumber}>{item?.subject}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}
+          onPress={() => toggleTeacherAttendance(item.teacherId)}>
+          {getStatusIcon(item.status)}
+          <Text style={styles.statusText}>
+            {item.status === 'absent'
+              ? 'Absent'
+              : item.status === 'leave'
+              ? 'Leave'
+              : 'Present'}
+          </Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Add toggle function for teacher attendance
+  const toggleTeacherAttendance = teacherId => {
+    setTeachers(prevTeachers =>
+      prevTeachers.map(teacher => {
+        if (teacher.teacherId === teacherId) {
+          const newStatus =
+            teacher.status === 'present'
+              ? 'absent'
+              : teacher.status === 'absent'
+              ? 'leave'
+              : 'present';
+
+          return {
+            ...teacher,
+            status: newStatus,
+          };
+        }
+        return teacher;
+      }),
+    );
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#5D39C1" />
@@ -301,61 +380,209 @@ const AttendanceScreen = ({navigation}) => {
           <Ionicons name="calendar" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'students' && styles.activeTab]}
+          onPress={() => setActiveTab('students')}>
+          <MaterialCommunityIcons
+            name="account-group"
+            size={22}
+            color={activeTab === 'students' ? '#5D39C1' : '#666'}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'students' && styles.activeTabText,
+            ]}>
+            Students
+          </Text>
+        </TouchableOpacity>
 
-      {/* Classes Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Classes</Text>
-        <FlatList
-          data={classesData?.data?.classes}
-          renderItem={renderClassItem}
-          keyExtractor={item => item._id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalListContent}
-        />
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'teachers' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('teachers');
+            // Load all teachers directly when switching to teachers tab
+            if (schoolTeachers?.teachers) {
+              const allTeachers = schoolTeachers.teachers.map(teacher => ({
+                teacherId: teacher._id,
+                teacherName: teacher.name,
+                subject: teacher.subject || 'Teacher',
+                profileImage:
+                  teacher.profilePicture || 'https://example.com/default.jpg',
+                status: 'present',
+              }));
+              setTeachers(allTeachers);
+            }
+          }}>
+          <MaterialCommunityIcons
+            name="account-tie"
+            size={22}
+            color={activeTab === 'teachers' ? '#5D39C1' : '#666'}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'teachers' && styles.activeTabText,
+            ]}>
+            Teachers
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Subjects Section */}
-      {selectedClass && (
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Subjects</Text>
-          <FlatList
-            data={subjectsData.data?.subjects?.filter(item =>
-              item.classId === selectedClass._id ? item : null,
-            )}
-            renderItem={renderSubjectItem}
-            keyExtractor={item => item._id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalListContent}
-          />
-        </View>
-      )}
+      {activeTab === 'students' ? (
+        <View style={{flex: 1}}>
+          {/* Classes Section */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Classes</Text>
+            <FlatList
+              data={classesData?.data?.classes}
+              renderItem={renderClassItem}
+              keyExtractor={item => item._id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalListContent}
+            />
+          </View>
 
-      {/* Students Section */}
-      {selectedSubject && students.length > 0 ? (
-        <>
+          {/* Subjects Section */}
+          {selectedClass && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Subjects</Text>
+              <FlatList
+                data={subjectsData.data?.subjects?.filter(item =>
+                  item.classId === selectedClass._id ? item : null,
+                )}
+                renderItem={renderSubjectItem}
+                keyExtractor={item => item._id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalListContent}
+              />
+            </View>
+          )}
+
+          {/* Students Section */}
+          {selectedSubject && students.length > 0 ? (
+            attendanceExists && !attendanceExists?.exists ? (
+              <>
+                <View style={styles.attendanceStatsContainer}>
+                  <View style={styles.statsCard}>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{stats.present}</Text>
+                      <Text style={styles.statLabel}>Present</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{stats.absent}</Text>
+                      <Text style={styles.statLabel}>Absent</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{stats.leave}</Text>
+                      <Text style={styles.statLabel}>Leave</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.attendanceHeader}>
+                  <Text style={styles.sectionTitle}>
+                    Students ({stats.total})
+                  </Text>
+                  <View style={styles.markAllButtons}>
+                    <TouchableOpacity
+                      style={[styles.markAllButton, styles.presentButton]}
+                      onPress={markAllPresent}>
+                      <Text style={styles.markAllText}>All Present</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.markAllButton, styles.absentButton]}
+                      onPress={markAllAbsent}>
+                      <Text style={styles.markAllText}>All Absent</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.studentListContainer}>
+                  <FlatList
+                    data={students}
+                    renderItem={renderStudentItem}
+                    keyExtractor={item => item.studentId}
+                    contentContainerStyle={styles.studentListContent}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={saveAttendance}
+                  activeOpacity={0.8}>
+                  <Text style={styles.saveButtonText}>Save Attendance</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={styles.noStudentsContainer}>
+                <MaterialCommunityIcons
+                  name="account-check-outline"
+                  size={60}
+                  color="#CCCCCC"
+                />
+                <Text style={styles.noStudentsText}>
+                  Attendance already taken
+                </Text>
+              </View>
+            )
+          ) : selectedSubject ? (
+            <View style={styles.noStudentsContainer}>
+              <MaterialCommunityIcons
+                name="account-search"
+                size={60}
+                color="#CCCCCC"
+              />
+              <Text style={styles.noStudentsText}>
+                No students found for this subject
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : teachersAttendanceExists.exists ? (
+        <View style={styles.noStudentsContainer}>
+          <MaterialCommunityIcons
+            name="account-check-outline"
+            size={60}
+            color="#CCCCCC"
+          />
+          <Text style={styles.noStudentsText}>Attendance already Filled</Text>
+        </View>
+      ) : (
+        <View style={{flex: 1}}>
           <View style={styles.attendanceStatsContainer}>
             <View style={styles.statsCard}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats.present}</Text>
+                <Text style={styles.statValue}>
+                  {teachers.filter(t => t.status === 'present').length}
+                </Text>
                 <Text style={styles.statLabel}>Present</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats.absent}</Text>
+                <Text style={styles.statValue}>
+                  {teachers.filter(t => t.status === 'absent').length}
+                </Text>
                 <Text style={styles.statLabel}>Absent</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats.leave}</Text>
+                <Text style={styles.statValue}>
+                  {teachers.filter(t => t.status === 'leave').length}
+                </Text>
                 <Text style={styles.statLabel}>Leave</Text>
               </View>
             </View>
           </View>
-
           <View style={styles.attendanceHeader}>
-            <Text style={styles.sectionTitle}>Students ({stats.total})</Text>
+            <Text style={styles.sectionTitle}>
+              {'Teachers'} ({teachers.length})
+            </Text>
             <View style={styles.markAllButtons}>
               <TouchableOpacity
                 style={[styles.markAllButton, styles.presentButton]}
@@ -372,9 +599,9 @@ const AttendanceScreen = ({navigation}) => {
 
           <View style={styles.studentListContainer}>
             <FlatList
-              data={students}
-              renderItem={renderStudentItem}
-              keyExtractor={item => item.studentId}
+              data={teachers}
+              renderItem={renderTeacherItem}
+              keyExtractor={item => item._id}
               contentContainerStyle={styles.studentListContent}
             />
           </View>
@@ -383,21 +610,12 @@ const AttendanceScreen = ({navigation}) => {
             style={styles.saveButton}
             onPress={saveAttendance}
             activeOpacity={0.8}>
-            <Text style={styles.saveButtonText}>Save Attendance</Text>
+            <Text style={styles.saveButtonText}>
+              Save {'Teacher'} Attendance
+            </Text>
           </TouchableOpacity>
-        </>
-      ) : selectedSubject ? (
-        <View style={styles.noStudentsContainer}>
-          <MaterialCommunityIcons
-            name="account-search"
-            size={60}
-            color="#CCCCCC"
-          />
-          <Text style={styles.noStudentsText}>
-            No students found for this subject
-          </Text>
         </View>
-      ) : null}
+      )}
     </View>
   );
 };
@@ -704,6 +922,40 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 12,
     textAlign: 'center',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 16,
+    marginBottom: 4,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  activeTab: {
+    backgroundColor: '#F0EBFA',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    marginLeft: 8,
+  },
+  activeTabText: {
+    color: '#5D39C1',
   },
 });
 

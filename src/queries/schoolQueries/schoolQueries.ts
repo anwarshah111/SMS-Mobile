@@ -331,4 +331,51 @@ export const useMarkStudentAttendaceMutation = config => {
     ...config,
   });
 };
+export const fetchAttendenceExistStatus = async (data: any) => {
+  try {
+    const res = await api.get(
+      `/api/schools/check-students-attendance-exists?schoolId=${data?.schoolId}&classId=${data?.classId}&subjectId=${data?.subjectId}&date=${data?.date}`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching:', error);
+  }
+};
+
+export const useFetchAttendanceExistQuery = (data: any, enabled: boolean) =>
+  useQuery({
+    queryKey: [
+      'attenanceExists',
+      data?.schoolId,
+      data?.subjectId,
+      data?.classId,
+    ],
+    enabled: enabled,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryFn: () => fetchAttendenceExistStatus(data),
+  });
+
+export const fetchTeachersAttedanceExists = async (data: any) => {
+  try {
+    const res = await api.get(
+      `/api/schools/check-teachers-attendance-exists?schoolId=${data?.schoolId}&date=${data?.date}`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching:', error);
+  }
+};
+
+export const useFetchTeachersAttendanceExistQuery = (
+  data: any,
+  enabled: boolean,
+) =>
+  useQuery({
+    queryKey: ['teachersAttenanceExists', data?.schoolId],
+    enabled: enabled,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    queryFn: () => fetchTeachersAttedanceExists(data),
+  });
 export default useFetchStudents;
