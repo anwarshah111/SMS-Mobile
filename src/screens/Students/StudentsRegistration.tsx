@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-  Image,
   StatusBar,
+  Modal,
+  FlatList,
+  Image,
 } from 'react-native';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
@@ -20,14 +21,26 @@ import PrimaryButton from '../../components/Buttons/PrimaryButton';
 import ImagePickerModal from '../../components/ImagePickers/ImagePicker';
 import CustomDatePickerModal from '../../components/DateTimePicker/DateTimePicker';
 import {calculateAge, formatDateToReadable} from '../../utility/utility';
-import {useRegisterStudentsMutation} from '../../queries/studentQueries/studentQueries';
+import {
+  useFetchSchoolDetailsForRegistration,
+  useRegisterStudentsMutation,
+} from '../../queries/studentQueries/studentQueries';
 import {showToast} from '../../components/Toasters/CustomToasts';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const StudentsRegistration = ({navigation}: any) => {
+const StudentsRegistration = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showClassModal, setShowClassModal] = useState(false);
+  const [showSubjectsModal, setShowSubjectsModal] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [schoolId, setSchoolId] = useState('');
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [schoolDetails, setSchoolDetails] = useState({});
+
   const {mutate} = useRegisterStudentsMutation({
     onSuccess: () => {
       navigation.goBack();
@@ -45,6 +58,25 @@ const StudentsRegistration = ({navigation}: any) => {
     },
   });
 
+  useEffect(() => {
+    if (selectedClass && schoolDetails?.school?.subjects) {
+      // Filter subjects that belong to the selected class
+      const classSubjects = schoolDetails.school.subjects.filter(
+        subject => subject.classId === selectedClass._id,
+      );
+      setAvailableSubjects(classSubjects);
+
+      // Auto-select non-elective subjects
+      const nonElectiveSubjects = classSubjects.filter(
+        subject => !subject.isElective,
+      );
+      setSelectedSubjects(nonElectiveSubjects);
+    } else {
+      setAvailableSubjects([]);
+      setSelectedSubjects([]);
+    }
+  }, [selectedClass, schoolDetails]);
+
   const initialValues = {
     name: '',
     contact: '',
@@ -52,6 +84,9 @@ const StudentsRegistration = ({navigation}: any) => {
     grade: '',
     schoolId: '',
     dob: '',
+    class: '',
+    classId: '',
+    subjects: [],
   };
 
   const validationSchema = Yup.object().shape({
@@ -61,11 +96,14 @@ const StudentsRegistration = ({navigation}: any) => {
       .required('Contact number is required'),
     email: Yup.string().email('Invalid email address'),
     schoolId: Yup.string().required('School ID is required'),
+    classId: Yup.string().required('Class is required'),
+    class: Yup.string().required('Class is required'),
+    subjects: Yup.array(),
     grade: Yup.string().required('Grade is required'),
     dob: Yup.date().required('Date of birth is required'),
   });
 
-  const handleSubmit = (values: any) => {
+  const handleSubmit = values => {
     const data = {
       photo: photo?.path || '',
       studentName: values.name,
@@ -74,6 +112,9 @@ const StudentsRegistration = ({navigation}: any) => {
       countryCode: '+91',
       grade: values.grade,
       schoolId: values.schoolId,
+      classId: values.classId,
+      className: values.class,
+      subjects: selectedSubjects.map(subject => subject._id),
     };
     mutate({data});
   };
@@ -88,12 +129,22 @@ const StudentsRegistration = ({navigation}: any) => {
           <TextInput
             style={styles.input}
             value={formikProps.values[name]}
-            onChangeText={formikProps.handleChange(name)}
+            onChangeText={text => {
+              formikProps.handleChange(name)(text);
+              if (name === 'schoolId') {
+                useFetchSchoolDetailsForRegistration(text, setSchoolDetails);
+              }
+            }}
             onBlur={formikProps.handleBlur(name)}
             placeholderTextColor="#9E9E9E"
             {...rest}
           />
         </View>
+        {name === 'schoolId' && schoolDetails?.school?.name ? (
+          <Text style={{...styles.errorText, color: '#000', fontWeight: '500'}}>
+            {schoolDetails?.school?.name}
+          </Text>
+        ) : null}
         {hasError && (
           <Text style={styles.errorText}>{formikProps.errors[name]}</Text>
         )}
@@ -101,9 +152,39 @@ const StudentsRegistration = ({navigation}: any) => {
     );
   };
 
-  const handleDatePicker = (date: any, formikProps: any) => {
+  const handleSelectClass = (classItem, formikProps) => {
+    setSelectedClass(classItem);
+    formikProps.setFieldValue('class', classItem.name);
+    formikProps.setFieldValue('classId', classItem._id);
+    setShowClassModal(false);
+  };
+
+  const toggleSubjectSelection = subject => {
+    if (!subject.isElective) {
+      // Non-elective subjects can't be toggled
+      return;
+    }
+
+    const isSelected = selectedSubjects.some(sel => sel._id === subject._id);
+
+    if (isSelected) {
+      // Remove the subject if already selected
+      setSelectedSubjects(
+        selectedSubjects.filter(sel => sel._id !== subject._id),
+      );
+    } else {
+      // Add the subject if not selected
+      setSelectedSubjects([...selectedSubjects, subject]);
+    }
+  };
+
+  const handleDatePicker = (date, formikProps) => {
     formikProps.setFieldValue('dob', date);
     setShowDatePicker(false);
+  };
+
+  const isSubjectSelected = subjectId => {
+    return selectedSubjects.some(subject => subject._id === subjectId);
   };
 
   return (
@@ -113,7 +194,7 @@ const StudentsRegistration = ({navigation}: any) => {
         colors={['#3949AB', '#1E88E5']}
         style={styles.gradientHeader}>
         <View style={{...styles.header, paddingTop: insets.top}}>
-          <Text style={styles.headerTitle}>Students Registration</Text>
+          <Text style={styles.headerTitle}>Student Registration</Text>
           <Text style={styles.headerSubtitle}>Join our education network</Text>
         </View>
       </LinearGradient>
@@ -189,6 +270,75 @@ const StudentsRegistration = ({navigation}: any) => {
                     icon="🆔"
                   />
 
+                  {/* Class Selection Field */}
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.label}>Class</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (schoolDetails?.school?.classes) {
+                          setShowClassModal(true);
+                        } else {
+                          showToast('Please enter a valid School ID first');
+                        }
+                      }}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.inputContainer,
+                        formikProps.touched['class'] &&
+                          formikProps.errors['class'] &&
+                          styles.errorInput,
+                      ]}>
+                      <Text style={styles.inputIcon}>🏫</Text>
+                      <Text
+                        style={[
+                          styles.input,
+                          !formikProps.values['class'] &&
+                            styles.placeholderText,
+                        ]}>
+                        {formikProps.values['class'] || 'Select Class'}
+                      </Text>
+                      <View style={styles.chevronContainer}>
+                        <Text style={styles.chevronIcon}>›</Text>
+                      </View>
+                    </TouchableOpacity>
+                    {formikProps.touched['class'] &&
+                      formikProps.errors['class'] && (
+                        <Text style={styles.errorText}>
+                          {formikProps.errors['class']}
+                        </Text>
+                      )}
+                  </View>
+
+                  {/* Subjects Selection Field */}
+                  <View style={styles.fieldContainer}>
+                    <Text style={styles.label}>Subjects</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (selectedClass) {
+                          setShowSubjectsModal(true);
+                        } else {
+                          showToast('Please select a class first');
+                        }
+                      }}
+                      activeOpacity={0.7}
+                      style={[styles.inputContainer]}>
+                      <Text style={styles.inputIcon}>📚</Text>
+                      <Text
+                        style={[
+                          styles.input,
+                          selectedSubjects.length === 0 &&
+                            styles.placeholderText,
+                        ]}>
+                        {selectedSubjects.length > 0
+                          ? `${selectedSubjects.length} subjects selected`
+                          : 'Select Subjects'}
+                      </Text>
+                      <View style={styles.chevronContainer}>
+                        <Text style={styles.chevronIcon}>›</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+
                   <FormField
                     label="Grade"
                     name="grade"
@@ -197,6 +347,7 @@ const StudentsRegistration = ({navigation}: any) => {
                     autoCapitalize="words"
                     icon="🏷️"
                   />
+
                   {/* DOB Picker */}
                   <View style={styles.fieldContainer}>
                     <Text style={styles.label}>Date of Birth</Text>
@@ -238,9 +389,7 @@ const StudentsRegistration = ({navigation}: any) => {
                         isVisible={showDatePicker}
                         date={formikProps.values['dob'] || new Date()}
                         maximumDate={new Date()}
-                        onConfirm={(date: Date) =>
-                          handleDatePicker(date, formikProps)
-                        }
+                        onConfirm={date => handleDatePicker(date, formikProps)}
                         onCancel={() => {
                           if (showDatePicker) {
                             setShowDatePicker(false);
@@ -254,6 +403,139 @@ const StudentsRegistration = ({navigation}: any) => {
                     title="Register Student"
                     onPress={() => formikProps.handleSubmit()}
                   />
+
+                  <Modal
+                    visible={showClassModal}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setShowClassModal(false)}>
+                    <View style={styles.modalOverlay}>
+                      <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                          <Text style={styles.modalTitle}>Select Class</Text>
+                          <TouchableOpacity
+                            onPress={() => setShowClassModal(false)}>
+                            <Ionicons name="close" size={24} color="#333" />
+                          </TouchableOpacity>
+                        </View>
+
+                        <FlatList
+                          data={schoolDetails?.school?.classes}
+                          keyExtractor={item => item._id}
+                          renderItem={({item}) => (
+                            <TouchableOpacity
+                              style={styles.modalItem}
+                              onPress={() =>
+                                handleSelectClass(item, formikProps)
+                              }>
+                              <View
+                                style={[
+                                  styles.classIconContainer,
+                                  {backgroundColor: '#4F46E5'},
+                                ]}>
+                                <Text style={styles.classIconText}>
+                                  {item.name.replace('Class ', '')}
+                                </Text>
+                              </View>
+                              <Text style={styles.modalItemText}>
+                                {item.name}
+                              </Text>
+                              {selectedClass &&
+                                selectedClass._id === item._id && (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={22}
+                                    color="#4F46E5"
+                                  />
+                                )}
+                            </TouchableOpacity>
+                          )}
+                          style={styles.modalList}
+                        />
+                      </View>
+                    </View>
+                  </Modal>
+
+                  <Modal
+                    visible={showSubjectsModal}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setShowSubjectsModal(false)}>
+                    <View style={styles.modalOverlay}>
+                      <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                          <Text style={styles.modalTitle}>Select Subjects</Text>
+                          <TouchableOpacity
+                            onPress={() => setShowSubjectsModal(false)}>
+                            <Ionicons name="close" size={24} color="#333" />
+                          </TouchableOpacity>
+                        </View>
+
+                        {availableSubjects.length > 0 ? (
+                          <FlatList
+                            data={availableSubjects}
+                            keyExtractor={item => item._id}
+                            renderItem={({item}) => (
+                              <TouchableOpacity
+                                style={[
+                                  styles.modalItem,
+                                  !item.isElective && styles.disabledItem,
+                                ]}
+                                onPress={() => toggleSubjectSelection(item)}
+                                disabled={!item.isElective}>
+                                <View
+                                  style={[
+                                    styles.subjectIconContainer,
+                                    {
+                                      backgroundColor: item.isElective
+                                        ? '#3B82F6'
+                                        : '#94A3B8',
+                                    },
+                                  ]}>
+                                  <Text style={styles.subjectIconText}>
+                                    {item.name.substring(0, 2).toUpperCase()}
+                                  </Text>
+                                </View>
+                                <View style={styles.subjectDetails}>
+                                  <Text style={styles.modalItemText}>
+                                    {item.name}
+                                  </Text>
+                                  <Text style={styles.subjectCodeText}>
+                                    {item.code}
+                                  </Text>
+                                  <Text style={styles.subjectTypeText}>
+                                    {item.isElective ? 'Elective' : 'Mandatory'}
+                                  </Text>
+                                </View>
+                                {isSubjectSelected(item._id) && (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={22}
+                                    color="#4F46E5"
+                                  />
+                                )}
+                              </TouchableOpacity>
+                            )}
+                            style={styles.modalList}
+                          />
+                        ) : (
+                          <View style={styles.emptyStateContainer}>
+                            <Text style={styles.emptyStateText}>
+                              No subjects available for this class
+                            </Text>
+                          </View>
+                        )}
+
+                        <TouchableOpacity
+                          style={styles.confirmButton}
+                          onPress={() => setShowSubjectsModal(false)}>
+                          <Text style={styles.confirmButtonText}>
+                            Confirm Selection
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </Modal>
                 </View>
               )}
             </Formik>
@@ -277,7 +559,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   gradientHeader: {
-    // paddingBottom: 30,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -305,20 +586,21 @@ const styles = StyleSheet.create({
   formContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    marginTop: 10,
+    marginHorizontal: 16,
+    marginTop: -30,
     paddingHorizontal: 20,
     paddingBottom: 30,
     paddingTop: 40,
+    shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 15,
+    shadowOffset: {width: 0, height: 5},
     elevation: 5,
   },
-
   photoPlaceholderText: {
     fontSize: 40,
     color: '#90CAF9',
   },
-
   formFields: {
     paddingHorizontal: 5,
   },
@@ -365,7 +647,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingLeft: 4,
   },
-
   photoUploadContainer: {
     alignItems: 'center',
     marginBottom: 30,
@@ -455,16 +736,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     height: 55,
   },
-  datePickerGradient: {
-    flex: 1,
-    borderRadius: 12,
-  },
-  datePickerContent: {
-    // flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-  },
   calendarIconContainer: {
     marginRight: 8,
   },
@@ -496,6 +767,114 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     transform: [{rotate: '90deg'}],
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  modalList: {
+    paddingHorizontal: 16,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  disabledItem: {
+    opacity: 0.7,
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  classIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  classIconText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  subjectIconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  subjectIconText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  subjectDetails: {
+    flex: 1,
+  },
+  subjectCodeText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  subjectTypeText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  emptyStateContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  confirmButton: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    backgroundColor: '#4F46E5',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

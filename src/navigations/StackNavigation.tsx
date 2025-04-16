@@ -24,6 +24,7 @@ import ClassroomScreen from '../screens/Schools/ClassRoom';
 import AddClassroomScreen from '../screens/Schools/AddClasses';
 import AddSubjectsScreen from '../screens/Schools/AddSubjects';
 import SubjectsScreen from '../screens/Schools/Subjects';
+import AttendanceScreen from '../screens/Schools/Attendance';
 
 const Stack = createStackNavigator();
 const StackNavigation = ({isLoggedIn}: {isLoggedIn: string}) => {
@@ -63,6 +64,7 @@ const StackNavigation = ({isLoggedIn}: {isLoggedIn: string}) => {
       <Stack.Screen name="AddClassroomScreen" component={AddClassroomScreen} />
       <Stack.Screen name="AddSubjectsScreen" component={AddSubjectsScreen} />
       <Stack.Screen name="SubjectsScreen" component={SubjectsScreen} />
+      <Stack.Screen name="AttendanceScreen" component={AttendanceScreen} />
       {/* <Stack.Screen name="Profile" component={BottomTabNavigation} /> */}
     </Stack.Navigator>
   );

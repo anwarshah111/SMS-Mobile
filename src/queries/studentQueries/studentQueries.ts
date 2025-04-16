@@ -95,3 +95,19 @@ export const useFetchLoginStudentDetails = (data, enabled) =>
     refetchOnMount: false,
     queryFn: () => fetchLoginStudentDetails(data),
   });
+
+export const useFetchSchoolDetailsForRegistration = async (
+  id: string,
+  setData: (data: any) => void,
+) => {
+  try {
+    const res = await api.post(
+      `/api/schools/get-school-details-for-registration`,
+      {id},
+    );
+    console.log(res.data);
+    setData(res.data);
+  } catch (error) {
+    console.error('Error fetching school details:', error);
+  }
+};

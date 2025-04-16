@@ -109,7 +109,6 @@ const AddClassroomScreen = ({navigation}) => {
     }
   };
 
-  // Custom dropdown item renderer for sections
   const renderSectionItem = ({item}) => (
     <TouchableOpacity
       style={styles.dropdownItem}

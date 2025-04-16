@@ -311,4 +311,24 @@ export const useFetchSchoolSubjectQuery = id =>
     queryFn: () => fetchSchoolSubjects(id),
   });
 
+const markStudentAttendence = async ({data}: any) => {
+  try {
+    const res = await api.post(`/api/schools/mark-students-attendance`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error marking attendance', error.response);
+    throw error;
+  }
+};
+
+export const useMarkStudentAttendaceMutation = config => {
+  // const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markStudentAttendence,
+    // onSettled: () => {
+    //   queryClient.invalidateQueries({queryKey: ['schoolSubjects']});
+    // },
+    ...config,
+  });
+};
 export default useFetchStudents;

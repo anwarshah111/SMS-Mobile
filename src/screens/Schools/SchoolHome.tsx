@@ -148,7 +148,7 @@ const SchoolHome = ({navigation}: any) => {
 
             <TouchableOpacity
               style={styles.actionCard}
-              onPress={() => navigation.navigate('ManageStudents')}>
+              onPress={() => navigation.navigate('AttendanceScreen')}>
               <View
                 style={[
                   styles.actionIconContainer,
